@@ -1,101 +1,153 @@
-Overview
+---
 
-This module implements Principal Component Analysis (PCA) for facial recognition. Its main goal is to compute eigenfaces, which are the principal components of a high-dimensional face dataset.
-Eigenfaces capture the most significant patterns of variation in facial images and form a lower-dimensional subspace for representing faces.
+# **PCA Module for Eigenfaces (Facial Recognition)**
 
-Responsibilities / Tasks
-1. Load Preprocessed Data
+## **Overview**
 
-Load the mean-centered training data (X_centered.npy) prepared by Member 2.
+This module implements **Principal Component Analysis (PCA)** for facial recognition using the **Eigenfaces** approach. The objective is to extract the most significant patterns from high-dimensional facial image data and represent them in a reduced-dimensional subspace.
 
-Load the mean face (mean_face.npy) and reduced covariance matrix (L.npy).
+Eigenfaces correspond to the principal components of the dataset and capture the dominant variations across facial images. This representation enables efficient face projection, reconstruction, and recognition.
 
-2. Eigen Decomposition
+---
 
-Perform eigenvalue decomposition on the reduced covariance matrix to obtain principal components.
+## **Responsibilities**
 
-Sort eigenvalues and eigenvectors in descending order of explained variance.
+### **1. Data Loading**
 
-3. Compute Eigenfaces
+* Load preprocessed and mean-centered training data:
 
-Transform the eigenvectors from the reduced covariance space to the original image space.
+  * `X_centered.npy` (shape: *N × D*)
+* Load auxiliary data:
 
-Normalize the resulting eigenfaces.
+  * `mean_face.npy` (shape: *D*)
+  * `L.npy` (reduced covariance matrix, shape: *N × N*)
 
-4. Visualization
+---
 
-Display the top 10 eigenfaces as grayscale images to illustrate dominant facial patterns.
+### **2. Eigen Decomposition**
 
-Plot cumulative variance explained by principal components.
+* Perform eigenvalue decomposition on the reduced covariance matrix.
+* Extract eigenvalues and eigenvectors using:
 
-5. Save Outputs for Downstream Tasks
+  ```python
+  np.linalg.eigh(L)
+  ```
+* Sort eigenvalues and corresponding eigenvectors in descending order based on explained variance.
 
-Save the eigenfaces (eigenfaces.npy) and eigenvalues (eigenvalues.npy) for use by Member 4 (projection, reconstruction, and recognition).
+---
 
-Data Used
+### **3. Eigenfaces Computation**
 
-Inputs from Member 2:
+* Map eigenvectors from reduced space to original image space:
 
-X_centered.npy: Mean-centered training images (shape: N × D)
+  ```python
+  eigenfaces = X_centered.T @ eigenvectors
+  ```
+* Normalize each eigenface:
 
-mean_face.npy: Mean face vector (shape: D,)
+  ```python
+  eigenfaces[:, i] /= np.linalg.norm(eigenfaces[:, i])
+  ```
 
-L.npy: Reduced covariance matrix (shape: N × N)
+---
 
-Assumptions:
+### **4. Visualization**
 
-Each image is 100 × 100 pixels.
+* Display the top 10 eigenfaces as grayscale images.
+* Reshape each eigenface from a vector of size *D* to *(100 × 100)*.
+* Plot cumulative explained variance to evaluate dimensionality reduction.
 
-Data has been preprocessed, flattened, and normalized to [0,1].
+---
 
-Outputs
+### **5. Output Generation**
 
-eigenfaces.npy: Eigenfaces in the original image space (shape: D × N)
+Save computed results for downstream processing:
 
-eigenvalues.npy: Corresponding eigenvalues (shape: N,)
+* `eigenfaces.npy` (shape: *D × N*)
+* `eigenvalues.npy` (shape: *N*)
 
-Visual outputs:
+These outputs are used in subsequent stages for:
 
-Top 10 eigenfaces
+* Face projection
+* Image reconstruction
+* Face recognition (e.g., via Euclidean distance)
 
-Cumulative variance explained plot
+---
 
-Used by Member 4 to:
+## **Dataset Assumptions**
 
-Project new faces into eigenface space
+* Each image has a resolution of **100 × 100 pixels**.
+* Images are:
 
-Reconstruct faces
+  * Preprocessed
+  * Flattened into vectors
+  * Normalized within the range [0, 1]
 
-Perform recognition based on Euclidean distances
+---
 
-Technical Details
-Eigenfaces Calculation
+## **Technical Details**
 
-Use reduced covariance trick:
-L = X_centered * X_centered.T (N × N) to avoid computing huge D × D covariance.
+### **Reduced Covariance Trick**
 
-Perform eigen decomposition: np.linalg.eigh(L) → eigenvectors and eigenvalues.
+To improve computational efficiency, PCA is applied using a reduced covariance matrix:
 
-Transform eigenvectors to original space:
-eigenfaces = X_centered.T * eigenvectors
+```
+L = X_centered · X_centeredᵀ   (N × N)
+```
 
-Normalize each eigenface:
-eigenfaces[:, i] / np.linalg.norm(eigenfaces[:, i])
+This avoids computing the full covariance matrix of size *(D × D)*, where *D* is very large.
 
-Visualization
+---
 
-Reshape each eigenface from 10,000-dimensional vector → 100 × 100 pixels
+### **Eigenfaces Pipeline**
 
-Display grayscale images using matplotlib
+1. Compute eigenvalues and eigenvectors of `L`.
+2. Project eigenvectors into the original feature space.
+3. Normalize resulting eigenfaces.
+4. Sort by importance (variance explained).
 
-Variance Explained
+---
 
-Each eigenvalue corresponds to the variance captured by its eigenface
+### **Variance Explained**
 
-Cumulative variance plot shows how many eigenfaces are needed to capture most of the dataset’s variance
+* Each eigenvalue represents the variance captured by its corresponding eigenface.
+* The cumulative variance plot helps determine how many components are required to retain most of the dataset’s information.
 
-References
+---
 
-Turk, M., & Pentland, A. (1991). Eigenfaces for Recognition. Journal of Cognitive Neuroscience, 3(1), 71–86.
+## **Outputs**
 
-Python libraries: numpy, matplotlib
+### **Files**
+
+* `eigenfaces.npy`
+* `eigenvalues.npy`
+
+### **Visualizations**
+
+* Top 10 eigenfaces
+* Cumulative explained variance plot
+
+---
+
+## **Integration**
+
+This module provides outputs required for the next stage of the pipeline, including:
+
+* Projection into eigenface space
+* Image reconstruction
+* Face recognition tasks
+
+---
+
+## **Dependencies**
+
+* `numpy`
+* `matplotlib`
+
+---
+
+## **Reference**
+
+* Turk, M., & Pentland, A. (1991). *Eigenfaces for Recognition*. Journal of Cognitive Neuroscience, 3(1), 71–86.
+
+---
